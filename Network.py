@@ -9,6 +9,7 @@ import numpy as np
 import time
 import argparse
 import warnings
+import os
 
 from keras.models import Model
 from keras.layers import Input
@@ -42,6 +43,9 @@ parser.add_argument('syle_image_paths', metavar='ref', nargs='+', type=str,
 
 parser.add_argument('result_prefix', metavar='res_prefix', type=str,
                     help='Prefix for the saved results.')
+
+parser.add_argument("--output_path", dest="output_path", type=str, default='results',
+                    help='Path to output iteration images')
 
 parser.add_argument("--style_masks", type=str, default=None, nargs='+',
                     help='Masks for style images')
@@ -101,6 +105,7 @@ parser.add_argument('--min_improvement', default=0.0, type=float,
                     help='Defines minimum improvement required to continue script')
 
 
+
 def str_to_bool(v):
     return v.lower() in ("true", "yes", "t", "1")
 
@@ -110,6 +115,7 @@ args = parser.parse_args()
 base_image_path = args.base_image_path
 style_reference_image_paths = args.syle_image_paths
 result_prefix = args.result_prefix
+output_path = args.output_path
 
 style_image_paths = []
 for style_image_path in style_reference_image_paths:
@@ -173,6 +179,13 @@ img_WIDTH = img_HEIGHT = 0
 aspect_ratio = 0
 
 assert args.content_loss_type in [0, 1, 2], "Content Loss Type must be one of 0, 1 or 2"
+
+
+
+'''Output dir'''
+if not os.path.exists(output_path):
+    os.makedirs(output_path)
+
 
 
 # util function to open, resize and format pictures into appropriate tensors
@@ -614,7 +627,7 @@ for i in range(num_iter):
         img = imresize(img, (img_WIDTH, img_HEIGHT), interp=args.rescale_method)
 
     fname = result_prefix + '_at_iteration_%d.png' % (i + 1)
-    imsave(fname, img)
+    imsave(os.path.join(output_path, fname), img)
     end_time = time.time()
     print('Image saved as', fname)
     print('Iteration %d completed in %ds' % (i + 1, end_time - start_time))
